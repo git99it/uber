@@ -23,7 +23,7 @@ jobs:
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.41.4' # Updated to match SDK requirement
+        flutter-version: '3.24.0' # Using stable version to avoid Kotlin compilation issues
         channel: 'stable'
 
     - name: Get Flutter dependencies
