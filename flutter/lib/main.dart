@@ -325,13 +325,15 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
               child: const Icon(Icons.location_pin, color: Colors.red, size: 48),
               width: 48,
               height: 48,
-              anchorPos: const AnchorPos(0.5, 0.5),
             ),
           );
         });
         LatLngBounds bounds = LatLngBounds.fromPoints(polylineCoordinates);
         _mapController.fitCamera(
-          CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)),
+          CameraFit.bounds(
+            bounds: bounds, 
+            padding: const EdgeInsets.all(50),
+          ),
         );
         _goToNextState();
       } catch (e) {
@@ -435,7 +437,6 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
             child: const Icon(Icons.location_pin, color: Colors.red, size: 48),
             width: 48,
             height: 48,
-            anchor: const Anchor(0.5, 0.5),
           ),
         );
       }
@@ -482,7 +483,10 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
         ),
       );
       _mapController.fitCamera(
-        CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(100)),
+        CameraFit.bounds(
+          bounds: bounds, 
+          padding: const EdgeInsets.all(100),
+        ),
       );
     }
   }
