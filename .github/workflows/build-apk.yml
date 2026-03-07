@@ -1,0 +1,56 @@
+name: Build Release APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0' # You can update this to your preferred version
+        channel: 'stable'
+
+    - name: Get Flutter dependencies
+      run: |
+        cd flutter
+        flutter pub get
+
+    - name: Build release APK
+      run: |
+        cd flutter
+        flutter build apk --release
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-apk
+        path: flutter/build/app/outputs/flutter-apk/app-release.apk
+        retention-days: 30
+
+    - name: Generate APK checksum
+      run: |
+        cd flutter/build/app/outputs/flutter-apk/
+        sha256sum app-release.apk > app-release.apk.sha256
+
+    - name: Upload checksum
+      uses: actions/upload-artifact@v4
+      with:
+        name: apk-checksum
+        path: flutter/build/app/outputs/flutter-apk/app-release.apk.sha256
+        retention-days: 30
