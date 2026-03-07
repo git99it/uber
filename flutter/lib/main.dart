@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vector_map_tiles/vector_map_tiles.dart';
-import 'package:vector_tile_renderer/vector_tile_renderer.dart' hide TileLayer;
+import 'package:vector_tile_renderer/vector_tile_renderer.dart' hide TileLayer, Theme;
 
 void main() async {
   await Supabase.initialize(url: 'SUPABASE_URL', anonKey: 'SUPABASE_ANON_KEY');
@@ -325,7 +325,7 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
               child: const Icon(Icons.location_pin, color: Colors.red, size: 48),
               width: 48,
               height: 48,
-              anchor: const Anchor(0.5, 0.5),
+              anchorPos: const AnchorPos(0.5, 0.5),
             ),
           );
         });
@@ -462,7 +462,6 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
           ),
           width: 48,
           height: 48,
-          anchor: const Anchor(0.5, 0.5),
         ),
       );
 
