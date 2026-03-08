@@ -17,6 +17,7 @@ dependencies:
   geolocator: ^12.0.0
   duration: ^3.0.13
   intl: ^0.19.0
+  # app_links: ^6.4.1  # Temporarily removed to fix build issues
 
 dev_dependencies:
   flutter_test:
