@@ -149,6 +149,7 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
   Style? _vectorStyle;
   bool _styleLoading = true;
   String? _vectorError;
+  bool _useOpenStreetMapFallback = false;
 
   @override
   void initState() {
@@ -313,10 +314,25 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
       AppLogger.logMapOperation('Vector style loading', success: true);
       AppLogger.info('Map style loaded successfully', tag: 'MAP');
     } catch (e) {
-      _vectorError = e.toString();
-      AppLogger.logMapOperation('Vector style loading',
+      AppLogger.logMapOperation('ProtoMaps loading failed, trying fallback',
           success: false, error: e.toString());
-      print('Failed to load vector style: $e');
+      AppLogger.warning('ProtoMaps failed, attempting OpenStreetMap fallback',
+          tag: 'MAP');
+
+      // Fallback to OpenStreetMap tiles if ProtoMaps fails
+      try {
+        // Create a simple tile layer as fallback
+        _useOpenStreetMapFallback = true;
+        AppLogger.logMapOperation('OpenStreetMap fallback', success: true);
+        AppLogger.info('Using OpenStreetMap fallback tiles', tag: 'MAP');
+      } catch (fallbackError) {
+        _vectorError =
+            'Both ProtoMaps and OpenStreetMap fallback failed. ProtoMaps error: ${e.toString()}, Fallback error: ${fallbackError.toString()}';
+        AppLogger.logMapOperation('All map loading methods failed',
+            success: false, error: _vectorError!);
+        AppLogger.error('All map loading methods failed',
+            tag: 'MAP', error: fallbackError);
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -658,9 +674,37 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
         children: [
           _currentLocation == null || _styleLoading
               ? const Center(child: CircularProgressIndicator())
-              : _vectorError != null
+              : (_vectorError != null && !_useOpenStreetMapFallback)
                   ? Center(
-                      child: Text('Error loading map style: $_vectorError'))
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.warning,
+                                color: Colors.orange, size: 48),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Map Loading Error',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _vectorError!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Using basic map tiles instead.',
+                              style:
+                                  TextStyle(fontSize: 14, color: Colors.blue),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
                   : FlutterMap(
                       mapController: _mapController,
                       options: MapOptions(
@@ -676,11 +720,18 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
                         },
                       ),
                       children: [
-                        VectorTileLayer(
-                          theme: _vectorStyle!.theme,
-                          sprites: _vectorStyle!.sprites,
-                          tileProviders: _vectorStyle!.providers,
-                        ),
+                        if (_useOpenStreetMapFallback)
+                          TileLayer(
+                            urlTemplate:
+                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'com.example.uber',
+                          )
+                        else if (_vectorStyle != null)
+                          VectorTileLayer(
+                            theme: _vectorStyle!.theme,
+                            sprites: _vectorStyle!.sprites,
+                            tileProviders: _vectorStyle!.providers,
+                          ),
                         PolylineLayer(polylines: _polylines),
                         MarkerLayer(markers: _markers),
                       ],
