@@ -14,7 +14,25 @@ class AppLogger {
       _logs.removeAt(0);
     }
 
-    developer.log(message, name: tag ?? 'APP', level: level ?? 'INFO');
+    // Fix: developer.log level parameter expects int, not String
+    int logLevel = 0; // Default to INFO level
+    switch (level?.toUpperCase()) {
+      case 'ERROR':
+        logLevel = 1000;
+        break;
+      case 'WARNING':
+        logLevel = 900;
+        break;
+      case 'DEBUG':
+        logLevel = 500;
+        break;
+      case 'INFO':
+      default:
+        logLevel = 800;
+        break;
+    }
+
+    developer.log(message, name: tag ?? 'APP', level: logLevel);
     print(logEntry);
   }
 
@@ -49,55 +67,83 @@ class AppLogger {
   }
 
   static void logSupabaseOperation(String operation,
-      {bool success = true, String? error}) {
+      {bool success = true, String? error, dynamic data}) {
     if (success) {
-      info('Supabase operation successful: $operation', tag: 'SUPABASE');
+      final message = data != null
+          ? 'Supabase operation successful: $operation (data: $data)'
+          : 'Supabase operation successful: $operation';
+      info(message, tag: 'SUPABASE');
     } else {
-      error('Supabase operation failed: $operation',
-          tag: 'SUPABASE', error: error);
+      final errorMessage = error != null
+          ? 'Supabase operation failed: $operation (error: $error)'
+          : 'Supabase operation failed: $operation';
+      log(errorMessage, level: 'ERROR', tag: 'SUPABASE');
     }
   }
 
   static void logMapOperation(String operation,
-      {bool success = true, String? error}) {
+      {bool success = true, String? error, dynamic data}) {
     if (success) {
-      info('Map operation successful: $operation', tag: 'MAP');
+      final message = data != null
+          ? 'Map operation successful: $operation (data: $data)'
+          : 'Map operation successful: $operation';
+      info(message, tag: 'MAP');
     } else {
-      error('Map operation failed: $operation', tag: 'MAP', error: error);
+      final errorMessage = error != null
+          ? 'Map operation failed: $operation (error: $error)'
+          : 'Map operation failed: $operation';
+      log(errorMessage, level: 'ERROR', tag: 'MAP');
     }
   }
 
   static void logLocationOperation(String operation,
-      {bool success = true, String? error}) {
+      {bool success = true, String? error, dynamic data}) {
     if (success) {
-      info('Location operation successful: $operation', tag: 'LOCATION');
+      final message = data != null
+          ? 'Location operation successful: $operation (data: $data)'
+          : 'Location operation successful: $operation';
+      info(message, tag: 'LOCATION');
     } else {
-      error('Location operation failed: $operation',
-          tag: 'LOCATION', error: error);
+      final errorMessage = error != null
+          ? 'Location operation failed: $operation (error: $error)'
+          : 'Location operation failed: $operation';
+      log(errorMessage, level: 'ERROR', tag: 'LOCATION');
     }
   }
 
   static void logRideOperation(String operation,
       {bool success = true, String? error, dynamic data}) {
     if (success) {
-      info('Ride operation successful: $operation', tag: 'RIDE');
+      final message = data != null
+          ? 'Ride operation successful: $operation (data: $data)'
+          : 'Ride operation successful: $operation';
+      info(message, tag: 'RIDE');
       if (data != null) {
         debug('Ride data: $data', tag: 'RIDE');
       }
     } else {
-      error('Ride operation failed: $operation', tag: 'RIDE', error: error);
+      final errorMessage = error != null
+          ? 'Ride operation failed: $operation (error: $error)'
+          : 'Ride operation failed: $operation';
+      log(errorMessage, level: 'ERROR', tag: 'RIDE');
     }
   }
 
   static void logDriverOperation(String operation,
       {bool success = true, String? error, dynamic data}) {
     if (success) {
-      info('Driver operation successful: $operation', tag: 'DRIVER');
+      final message = data != null
+          ? 'Driver operation successful: $operation (data: $data)'
+          : 'Driver operation successful: $operation';
+      info(message, tag: 'DRIVER');
       if (data != null) {
         debug('Driver data: $data', tag: 'DRIVER');
       }
     } else {
-      error('Driver operation failed: $operation', tag: 'DRIVER', error: error);
+      final errorMessage = error != null
+          ? 'Driver operation failed: $operation (error: $error)'
+          : 'Driver operation failed: $operation';
+      log(errorMessage, level: 'ERROR', tag: 'DRIVER');
     }
   }
 }
