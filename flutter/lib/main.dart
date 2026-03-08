@@ -10,10 +10,15 @@ import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vector_map_tiles/vector_map_tiles.dart';
-import 'package:vector_tile_renderer/vector_tile_renderer.dart' hide TileLayer, Theme;
+import 'package:vector_tile_renderer/vector_tile_renderer.dart'
+    hide TileLayer, Theme;
 
 void main() async {
-  await Supabase.initialize(url: 'SUPABASE_URL', anonKey: 'SUPABASE_ANON_KEY');
+  await Supabase.initialize(
+    url: 'https://xjdkdpmmfhpgqdcsgdge.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhqZGtkcG1tZmhwZ3FkY3NnZGdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NTU1MjAsImV4cCI6MjA4ODUzMTUyMH0.KQ5VwFM-J9zrSyoWJy1dF09vCnBGc1EzZiUFmpiASGc',
+  );
   runApp(const MainApp());
 }
 
@@ -322,7 +327,8 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
           _markers.add(
             Marker(
               point: _selectedDestination!,
-              child: const Icon(Icons.location_pin, color: Colors.red, size: 48),
+              child:
+                  const Icon(Icons.location_pin, color: Colors.red, size: 48),
               width: 48,
               height: 48,
             ),
@@ -331,7 +337,7 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
         LatLngBounds bounds = LatLngBounds.fromPoints(polylineCoordinates);
         _mapController.fitCamera(
           CameraFit.bounds(
-            bounds: bounds, 
+            bounds: bounds,
             padding: const EdgeInsets.all(50),
           ),
         );
@@ -428,7 +434,7 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
     setState(() {
       // Remove all existing markers (since we can't identify by key)
       _markers.clear();
-      
+
       // Re-add destination marker if it exists
       if (_selectedDestination != null) {
         _markers.add(
@@ -484,7 +490,7 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
       );
       _mapController.fitCamera(
         CameraFit.bounds(
-          bounds: bounds, 
+          bounds: bounds,
           padding: const EdgeInsets.all(100),
         ),
       );
