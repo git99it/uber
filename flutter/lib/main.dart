@@ -12,13 +12,28 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vector_map_tiles/vector_map_tiles.dart';
 import 'package:vector_tile_renderer/vector_tile_renderer.dart'
     hide TileLayer, Theme;
+import 'services/logger.dart';
+import 'pages/log_page.dart';
 
 void main() async {
-  await Supabase.initialize(
-    url: 'https://ktrvyfoystnlhkptqkkn.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0cnZ5Zm95c3RubGhrcHRxa2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NTYwMzEsImV4cCI6MjA4ODUzMjAzMX0.ECXICfr5Ft7oPtV4n9xMf5eHbufJQa7ap2ahsghv69s',
-  );
+  AppLogger.info('Uber Clone App starting...', tag: 'MAIN');
+
+  try {
+    AppLogger.info('Initializing Supabase...', tag: 'MAIN');
+    await Supabase.initialize(
+      url: 'https://ktrvyfoystnlhkptqkkn.supabase.co',
+      anonKey:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0cnZ5Zm95c3RubGhrcHRxa2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NTYwMzEsImV4cCI6MjA4ODUzMjAzMX0.ECXICfr5Ft7oPtV4n9xMf5eHbufJQa7ap2ahsghv69s',
+    );
+    AppLogger.logSupabaseOperation('Supabase initialization', success: true);
+  } catch (e, stackTrace) {
+    AppLogger.logSupabaseOperation('Supabase initialization',
+        success: false, error: e.toString());
+    AppLogger.error('Failed to initialize Supabase',
+        tag: 'MAIN', error: e, stackTrace: stackTrace);
+  }
+
+  AppLogger.info('Starting app...', tag: 'MAIN');
   runApp(const MainApp());
 }
 
@@ -138,10 +153,14 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
   @override
   void initState() {
     super.initState();
+    AppLogger.info('Initializing UberCloneMainScreen', tag: 'UI');
+
     _signInIfNotSignedIn();
     _checkLocationPermission();
     _loadIcons();
     _loadVectorStyle();
+
+    AppLogger.info('UberCloneMainScreen initialization complete', tag: 'UI');
   }
 
   @override
@@ -151,16 +170,26 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
   }
 
   Future<void> _signInIfNotSignedIn() async {
+    AppLogger.info('Checking authentication status...', tag: 'AUTH');
+
     if (supabase.auth.currentSession == null) {
       try {
+        AppLogger.info('No active session, signing in anonymously...',
+            tag: 'AUTH');
         await supabase.auth.signInAnonymously();
+        AppLogger.logSupabaseOperation('Anonymous sign-in', success: true);
+        AppLogger.info('Successfully signed in anonymously', tag: 'AUTH');
       } catch (e) {
+        AppLogger.logSupabaseOperation('Anonymous sign-in',
+            success: false, error: e.toString());
         if (mounted) {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
         }
       }
+    } else {
+      AppLogger.info('User already authenticated', tag: 'AUTH');
     }
   }
 
@@ -224,16 +253,29 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
+    AppLogger.info('Getting current location...', tag: 'LOCATION');
+
     try {
       Position position = await Geolocator.getCurrentPosition();
+      AppLogger.logLocationOperation('Get current location',
+          success: true,
+          data: {
+            'latitude': position.latitude,
+            'longitude': position.longitude,
+            'accuracy': position.accuracy,
+          });
+
       setState(() {
         _currentLocation = LatLng(position.latitude, position.longitude);
         _initialCenter = _currentLocation!;
         _initialZoom = 14.0;
       });
       _mapController.move(_initialCenter, _initialZoom);
+
+      AppLogger.info('Location set successfully', tag: 'LOCATION');
     } catch (e) {
-      debugPrint(e.toString());
+      AppLogger.logLocationOperation('Get current location',
+          success: false, error: e.toString());
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -259,6 +301,8 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
   }
 
   Future<void> _loadVectorStyle() async {
+    AppLogger.info('Loading vector map style...', tag: 'MAP');
+
     try {
       final reader = StyleReader(
         uri:
@@ -266,8 +310,12 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
         apiKey: _protoMapsApiKey,
       );
       _vectorStyle = await reader.read();
+      AppLogger.logMapOperation('Vector style loading', success: true);
+      AppLogger.info('Map style loaded successfully', tag: 'MAP');
     } catch (e) {
       _vectorError = e.toString();
+      AppLogger.logMapOperation('Vector style loading',
+          success: false, error: e.toString());
       print('Failed to load vector style: $e');
     } finally {
       if (mounted) {
@@ -289,8 +337,11 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
   }
 
   Future<void> _confirmLocation() async {
+    AppLogger.info('Confirming location and calculating route...', tag: 'RIDE');
+
     if (_selectedDestination != null && _currentLocation != null) {
       try {
+        AppLogger.info('Calling route function...', tag: 'RIDE');
         final response = await supabase.functions.invoke(
           'route',
           body: {
@@ -305,11 +356,20 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
           },
         );
 
+        AppLogger.logSupabaseOperation('Route function call',
+            success: true, data: response.data);
+
         final data = response.data as Map<String, dynamic>;
         final coordinates = data['legs'][0]['polyline']['geoJsonLinestring']
             ['coordinates'] as List<dynamic>;
         final duration = parseDuration(data['duration'] as String);
         _fare = ((duration.inMinutes * 40)).ceil();
+
+        AppLogger.logRideOperation('Route calculation', success: true, data: {
+          'duration': duration.toString(),
+          'fare': _fare,
+          'coordinates_count': coordinates.length,
+        });
 
         final List<LatLng> polylineCoordinates = coordinates.map((coord) {
           return LatLng(coord[1], coord[0]);
@@ -356,7 +416,10 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
   ///
   /// When a driver is found, it subscribes to the driver's location and ride status.
   Future<void> _findDriver() async {
+    AppLogger.info('Finding nearby driver...', tag: 'DRIVER');
+
     try {
+      AppLogger.info('Calling find_driver RPC...', tag: 'DRIVER');
       final response = await supabase.rpc(
         'find_driver',
         params: {
@@ -368,7 +431,11 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
         },
       ) as List<dynamic>;
 
+      AppLogger.logSupabaseOperation('find_driver RPC',
+          success: true, data: response);
+
       if (response.isEmpty) {
+        AppLogger.warning('No drivers found in the area', tag: 'DRIVER');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -378,8 +445,15 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
         }
         return;
       }
+
       String driverId = response.first['driver_id'];
       String rideId = response.first['ride_id'];
+
+      AppLogger.logDriverOperation('Driver found', success: true, data: {
+        'driver_id': driverId,
+        'ride_id': rideId,
+        'response_data': response.first,
+      });
 
       _driverSubscription = supabase
           .from('drivers')
@@ -565,7 +639,21 @@ class UberCloneMainScreenState extends State<UberCloneMainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_getAppBarTitle())),
+      appBar: AppBar(
+        title: Text(_getAppBarTitle()),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            onPressed: () {
+              AppLogger.info('Navigating to log page', tag: 'UI');
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const LogPage()),
+              );
+            },
+            tooltip: 'View Logs',
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           _currentLocation == null || _styleLoading
