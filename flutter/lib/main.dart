@@ -15,9 +15,9 @@ import 'package:vector_tile_renderer/vector_tile_renderer.dart'
 
 void main() async {
   await Supabase.initialize(
-    url: 'https://bffkinxvrlixyumovjfo.supabase.co',
+    url: 'https://ktrvyfoystnlhkptqkkn.supabase.co',
     anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmZmtpbnh2cmxpeHl1bW92amZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NTU4NjAsImV4cCI6MjA4ODUzMTg2MH0.Xyi3GUQy04gT_SogWKMigU4Kvy7T_YfL7njXmQIWnrs',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0cnZ5Zm95c3RubGhrcHRxa2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NTYwMzEsImV4cCI6MjA4ODUzMjAzMX0.ECXICfr5Ft7oPtV4n9xMf5eHbufJQa7ap2ahsghv69s',
   );
   runApp(const MainApp());
 }
